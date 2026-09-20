@@ -7,8 +7,7 @@ Team **scaleOps** · Built for the *First Commit* hackathon (WeMakeDevs × AWS) 
 | | |
 |---|---|
 | Live demo | http://3.110.177.209 *(hosted on AWS EC2; may be taken down after judging)* |
-| Demo video | *add link before submitting* |
-| Repository | https://github.com/iJapmanSingh/rural-financial-advisor |
+
 
 ---
 
