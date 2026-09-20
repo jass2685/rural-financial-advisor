@@ -1,0 +1,54 @@
+# One-command deploy for a single EC2 instance:  docker compose up -d --build
+# Only port 80 (nginx) is exposed. Backend, AI service and DB stay on the private compose network.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: rural_advisory
+      POSTGRES_USER: ${DB_USER:-hackathon}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the .env file}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hackathon} -d rural_advisory"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  ai-service:
+    build: ./llm_service/ai-service
+    restart: unless-stopped
+    environment:
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      BEDROCK_MODEL_ID: ${BEDROCK_MODEL_ID:-apac.amazon.nova-pro-v1:0}
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+      # No AWS keys here on purpose: on EC2 the instance's IAM role provides credentials.
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/rural_advisory
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-hackathon}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      LLM_SERVICE_URL: http://ai-service:8000
+      JAVA_TOOL_OPTIONS: -Xmx512m
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - ai-service
+    ports:
+      - "80:80"
+
+volumes:
+  pgdata:

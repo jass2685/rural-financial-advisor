@@ -1,0 +1,33 @@
+# OS
+.DS_Store
+
+# Secrets - never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+application-local.properties
+
+# Frontend (Vite/React)
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Backend (Spring Boot/Maven)
+target/
+.idea/
+*.iml
+.vscode/
+HELP.md
+.mvn/wrapper/maven-wrapper.jar
+
+# Python (llm_service)
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Logs
+*.log
